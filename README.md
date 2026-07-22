@@ -1,4 +1,4 @@
-# mini-rag
+# Rag system
 
 This is a minimal implementation of the RAG model for question answering.
 
