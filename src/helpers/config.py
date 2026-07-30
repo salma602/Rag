@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     FILE_MAX_SIZE_MB: int
     FILE_DEFAULT_CHUNK_SIZE: int
 
+    MONGO_URI: str
+    MONGO_DB_NAME: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

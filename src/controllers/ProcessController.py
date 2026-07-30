@@ -20,12 +20,26 @@ class ProcessController(Basecontroller):
         return os.path.splitext(file_id)[-1]
 
     def get_file_loader(self, file_id: str):
-        file_path=os.path.join(self.project_path, file_id)
-        file_ext=self.get_file_extension(file_id=file_id)
-        if file_ext==ProcessingStatus.TXT.value:
-            return TextLoader(file_path, encoding='utf-8')
-        if file_ext==ProcessingStatus.PDF.value:
+        file_path = os.path.join(self.project_path, file_id)
+
+        print("Project path:", self.project_path)
+        print("File path:", file_path)
+        print("File exists:", os.path.exists(file_path))
+
+        file_ext = self.get_file_extension(file_id)
+        print("Extension:", file_ext)
+        print("TXT enum:", ProcessingStatus.TXT.value)
+        print("PDF enum:", ProcessingStatus.PDF.value)
+
+        if file_ext == ProcessingStatus.TXT.value:
+            print("Using TextLoader")
+            return TextLoader(file_path, encoding="utf-8")
+
+        if file_ext == ProcessingStatus.PDF.value:
+            print("Using PyPDFLoader")
             return PyPDFLoader(file_path)
+
+        print("No loader found")
         return None
 
     def get_file_content(self, file_id: str):

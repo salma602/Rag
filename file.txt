@@ -1,1 +1,39 @@
-elsaloom
+LangChain is a framework for building LLM applications.
+
+A RAG system reads documents, splits them into chunks,
+creates embeddings for every chunk,
+stores them in a vector database,
+and retrieves the most relevant chunks during question answering.
+
+FastAPI is used to build the backend API.
+MongoDB stores metadata.
+
+LangChain is a framework for building LLM applications.
+
+A RAG system reads documents, splits them into chunks,
+creates embeddings for every chunk,
+stores them in a vector database,
+and retrieves the most relevant chunks during question answering.
+
+FastAPI is used to build the backend API.
+MongoDB stores metadata.
+
+LangChain is a framework for building LLM applications.
+
+A RAG system reads documents, splits them into chunks,
+creates embeddings for every chunk,
+stores them in a vector database,
+and retrieves the most relevant chunks during question answering.
+
+FastAPI is used to build the backend API.
+MongoDB stores metadata.
+
+LangChain is a framework for building LLM applications.
+
+A RAG system reads documents, splits them into chunks,
+creates embeddings for every chunk,
+stores them in a vector database,
+and retrieves the most relevant chunks during question answering.
+
+FastAPI is used to build the backend API.
+MongoDB stores metadata.
