@@ -10,3 +10,15 @@ class Project(BaseModel):
 
     id: Optional[ObjectId] = Field(default=None, alias="_id")
     project_id: str = Field(..., min_length=1)
+
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                "key":[
+                    ("project_id", 1)
+                ],
+                "name": "project_id_index",
+                "unique": True
+            }
+        ]

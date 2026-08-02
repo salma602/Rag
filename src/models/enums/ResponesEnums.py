@@ -8,4 +8,7 @@ class ResponseSignal(Enum):
     FILE_TYPE_NOT_ALLOWED = "file type not allowed"
     PROCESSING_FAILED = "file processing failed"
     PROCESSING_SUCCESS = "file processing success"
+    NO_FILE_ERROR = "no file found for the given project"
+    FILE_ID_ERROR = "file id is required for processing"
+
     

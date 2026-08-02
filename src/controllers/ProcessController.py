@@ -31,6 +31,9 @@ class ProcessController(Basecontroller):
         print("TXT enum:", ProcessingStatus.TXT.value)
         print("PDF enum:", ProcessingStatus.PDF.value)
 
+        if not os.path.exists(file_path):
+            return None
+
         if file_ext == ProcessingStatus.TXT.value:
             print("Using TextLoader")
             return TextLoader(file_path, encoding="utf-8")
@@ -46,7 +49,10 @@ class ProcessController(Basecontroller):
         loader=self.get_file_loader(file_id=file_id)
         if loader is None:
             return None
-        return loader.load()
+        if loader:
+            return loader.load()
+        return None
+    
 
     def process_file_content(
         self,
