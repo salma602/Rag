@@ -1,4 +1,4 @@
-from ..LLMInterface import LLMInterface
+from ..LLMinterface import LLMInterface
 from ..LLMEnums import CoHereEnums, DocumentTypeEnum
 import cohere
 import logging

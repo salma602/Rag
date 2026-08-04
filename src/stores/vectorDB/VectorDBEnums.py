@@ -1,5 +1,5 @@
 from enum import Enum
-class VectorDBType(str, Enum):
+class VectorDBEnums(str, Enum):
     QDRANT = "QDRANT"
 
 class DistanceMethodEnums(Enum):
