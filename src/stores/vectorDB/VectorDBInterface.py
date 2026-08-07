@@ -43,7 +43,7 @@ class VectorDBInterface:
         pass
 
     @abstractmethod
-    def search_by_vector(self, collection_name: str, vector: list,limit: int):
+    def search_by_vector(self, collection_name: str, vector: list,limit: int) -> List[RetrivedDocument]:
         pass
 
 

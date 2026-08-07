@@ -94,9 +94,7 @@ class NLPController(Basecontroller):
         if not results:
             return False
 
-        return json.loads(
-            json.dumps(results, default=lambda x: x.__dict__)
-        )
+        return results
     
     def answer_rag_question(self, project: project, query: str, limit: int = 10):
         
@@ -135,9 +133,9 @@ class NLPController(Basecontroller):
             )
         ]
 
-        full_prompt = "\n\n".join([ documents_prompts,  footer_prompt])
+        full_prompt = "\n\n".join([ documents_prompts,footer_prompt])
 
-        # get the Answer
+        #get the answer
         answer = self.generation_client.generate_text(
             prompt=full_prompt,
             chat_history=chat_history

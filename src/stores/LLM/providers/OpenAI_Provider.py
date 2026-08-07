@@ -15,10 +15,14 @@ class OpenAIProvider(LLMInterface):
         self.default_output_max_tokens = default_output_max_tokens
         self.temperature = temperature
 
-        self.client = OpenAI(api_key=self.api_key,api_url=self.api_url)
+        self.client = OpenAI(
+            api_key=self.api_key,
+            api_url=self.api_url if self.api_url and len(self.api_url) else None
+            )
         self.generation_model_id = None
         self.embedding_model_id = None
         self.embedding_size = None
+        self.enums=OpenAIEnums
 
         self.logger = logging.getLogger(__name__)
 
