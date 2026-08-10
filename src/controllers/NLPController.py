@@ -1,22 +1,14 @@
 from .Basecontroller import Basecontroller
-from models.db_schems.mini_rag.schemes.project import Project
-from models.db_schems.mini_rag.schemes import datachunk
+from models.db_schems.mini_rag.schemes import Project, DataChunk
 from stores.LLM.LLMEnums import DocumentTypeEnum
-
 from typing import List
 import json
 
 class NLPController(Basecontroller):
 
-    def __init__(
-        self,
-        app_settings,
-        vectordb_client,
-        generation_client,
-        embedding_client,
-        template_parser=None,
-    ):
-        super().__init__(app_settings)
+    def __init__(self, vectordb_client, generation_client, 
+                 embedding_client, template_parser):
+        super().__init__()
 
         self.vectordb_client = vectordb_client
         self.generation_client = generation_client
@@ -24,45 +16,42 @@ class NLPController(Basecontroller):
         self.template_parser = template_parser
 
     def create_collection_name(self, project_id: str):
-        return f"collection_{project_id}".strip()
+        return f"collection_{self.vectordb_client.default_vector_size}_{project_id}".strip()
     
-    def reset_vector_db_collection(self, project: Project):
+    async def reset_vector_db_collection(self, project: Project):
         collection_name = self.create_collection_name(project_id=project.project_id)
-        return self.vectordb_client.delete_collection(collection_name=collection_name)
+        return await self.vectordb_client.delete_collection(collection_name=collection_name)
     
-    def get_vector_db_collection_info(self, project: Project):
+    async def get_vector_db_collection_info(self, project: Project):
         collection_name = self.create_collection_name(project_id=project.project_id)
-        collection_info = self.vectordb_client.get_collection_info(collection_name=collection_name)
+        collection_info = await self.vectordb_client.get_collection_info(collection_name=collection_name)
 
         return json.loads(
             json.dumps(collection_info, default=lambda x: x.__dict__)
         )
     
-    def index_into_vector_db(self, project: Project, chunks: List[datachunk],
+    async def index_into_vector_db(self, project: Project, chunks: List[DataChunk],
                                    chunks_ids: List[int], 
                                    do_reset: bool = False):
         
-        # get collection name
+        # step1: get collection name
         collection_name = self.create_collection_name(project_id=project.project_id)
 
-        #manage items
+        # step2: manage items
         texts = [ c.chunk_text for c in chunks ]
         metadata = [ c.chunk_metadata for c in  chunks]
-        vectors = [
-            self.embedding_client.embed_text(text=text, 
-                                             document_type=DocumentTypeEnum.DOCUMENT.value)
-            for text in texts
-        ]
+        vectors = self.embedding_client.embed_text(text=texts, 
+                                                  document_type=DocumentTypeEnum.DOCUMENT.value)
 
-        #create collection if not exists
-        _ = self.vectordb_client.create_collection(
+        # step3: create collection if not exists 
+        _ = await self.vectordb_client.create_collection(
             collection_name=collection_name,
             embedding_size=self.embedding_client.embedding_size,
             do_reset=do_reset,
         )
 
-        # insert into vector db
-        _ = self.vectordb_client.insert_many(
+        # step4: insert into vector db
+        _ = await self.vectordb_client.insert_many(
             collection_name=collection_name,
             texts=texts,
             metadata=metadata,
@@ -72,22 +61,29 @@ class NLPController(Basecontroller):
 
         return True
 
-    def search_vector_db_collection(self, project: Project, text: str, limit: int = 10):
+    async def search_vector_db_collection(self, project: Project, text: str, limit: int = 10):
 
-        # get collection name
+        # step1: get collection name
+        query_vector = None
         collection_name = self.create_collection_name(project_id=project.project_id)
 
-        # get text embedding vector
-        vector = self.embedding_client.embed_text(text=text, 
+        # step2: get text embedding vector
+        vectors = self.embedding_client.embed_text(text=text, 
                                                  document_type=DocumentTypeEnum.QUERY.value)
 
-        if not vector or len(vector) == 0:
+        if not vectors or len(vectors) == 0:
             return False
+        
+        if isinstance(vectors, list) and len(vectors) > 0:
+            query_vector = vectors[0]
 
-        # get semantic search results
-        results = self.vectordb_client.search_by_vector(
+        if not query_vector:
+            return False    
+
+        # step3: do semantic search
+        results = await self.vectordb_client.search_by_vector(
             collection_name=collection_name,
-            vector=vector,
+            vector=query_vector,
             limit=limit
         )
 
@@ -96,12 +92,12 @@ class NLPController(Basecontroller):
 
         return results
     
-    def answer_rag_question(self, project: Project, query: str, limit: int = 10):
+    async def answer_rag_question(self, project: Project, query: str, limit: int = 10):
         
         answer, full_prompt, chat_history = None, None, None
 
-        # get related documents
-        retrieved_documents = self.search_vector_db_collection(
+        # step1: retrieve related documents
+        retrieved_documents = await self.search_vector_db_collection(
             project=project,
             text=query,
             limit=limit,
@@ -110,13 +106,13 @@ class NLPController(Basecontroller):
         if not retrieved_documents or len(retrieved_documents) == 0:
             return answer, full_prompt, chat_history
         
-        #Construct LLM prompt
+        # step2: Construct LLM prompt
         system_prompt = self.template_parser.get("rag", "system_prompt")
 
         documents_prompts = "\n".join([
             self.template_parser.get("rag", "document_prompt", {
                     "doc_num": idx + 1,
-                    "chunk_text": self.generation_client.process_text(doc.text)  ,
+                    "chunk_text": self.generation_client.process_text(doc.text),
             })
             for idx, doc in enumerate(retrieved_documents)
         ])
@@ -125,7 +121,7 @@ class NLPController(Basecontroller):
             "query": query
         })
 
-        #Construct Generation Client Prompts
+        # step3: Construct Generation Client Prompts
         chat_history = [
             self.generation_client.construct_prompt(
                 prompt=system_prompt,
@@ -133,9 +129,9 @@ class NLPController(Basecontroller):
             )
         ]
 
-        full_prompt = "\n\n".join([ documents_prompts,footer_prompt])
+        full_prompt = "\n\n".join([ documents_prompts,  footer_prompt])
 
-        #get the answer
+        # step4: Retrieve the Answer
         answer = self.generation_client.generate_text(
             prompt=full_prompt,
             chat_history=chat_history

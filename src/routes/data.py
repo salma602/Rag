@@ -15,6 +15,9 @@ from models.db_schems.mini_rag.schemes import DataChunk, Asset
 from models.ChunkModel import ChunkModel
 from models.AssetModel import AssetModel
 from models.enums.AssetTypeEnum  import AssetTypeEnum
+from controllers import NLPController
+
+
 logger = logging.getLogger('uvicorn.error')
 
 data_router = APIRouter(
@@ -90,6 +93,13 @@ async def process_endpoint(request: Request, id: int, process_request: ProcessRe
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)   
 
     project=await project_model.get_project_or_create_one(project_id=id)
+
+    nlp_controller = NLPController(
+        vectordb_client=request.app.vectordb_client,
+        generation_client=request.app.generation_client,
+        embedding_client=request.app.embedding_client,
+        template_parser=request.app.template_parser,
+    )
     asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
 
 
@@ -129,8 +139,13 @@ async def process_endpoint(request: Request, id: int, process_request: ProcessRe
             )
 
     if do_reset ==1:
-        _= await chunk_model.delete_chunks_by_project_id(project_id=project.project_id)
-    
+        collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
+        _ = await request.app.vectordb_client.delete_collection(collection_name=collection_name)
+
+        #del associated chunks
+        _ = await chunk_model.delete_chunks_by_project_id(
+            project_id=project.project_id
+        )    
 
     for asset_id, file_id in project_files_ids.items():
         file_content = process_controller_obj.get_file_content(file_id=file_id)

@@ -7,6 +7,8 @@ from controllers import NLPController
 from models import ResponseSignal
 from helpers.config import get_settings
 import logging
+from tqdm.auto import tqdm
+
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -51,6 +53,21 @@ async def index_project(request: Request, project_id: int, push_request: PushReq
     page_no = 1
     inserted_items_count = 0
     idx = 0
+
+
+    collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
+
+    _ = await request.app.vectordb_client.create_collection(
+        collection_name=collection_name,
+        embedding_size=request.app.embedding_client.embedding_size,
+        do_reset=push_request.do_reset,
+    )
+
+    #batching
+    total_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)
+    pbar = tqdm(total=total_chunks_count, desc="Vector Indexing", position=0)
+
+
 
     while has_records:
         page_chunks = await chunk_model.get_project_chunks(project_id=project.project_id, page_no=page_no)
