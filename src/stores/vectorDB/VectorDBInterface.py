@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
-from models.db_schems.data_chunk import RetrivedDocument
+from models.db_schems.mini_rag.schemes import RetrievedDocument
 class VectorDBInterface:
 
     @abstractmethod
@@ -43,7 +43,7 @@ class VectorDBInterface:
         pass
 
     @abstractmethod
-    def search_by_vector(self, collection_name: str, vector: list,limit: int) -> List[RetrivedDocument]:
+    def search_by_vector(self, collection_name: str, vector: list,limit: int) -> List[RetrievedDocument]:
         pass
 
 

@@ -30,12 +30,14 @@ class TemplateParser:
             return None
 
         #group modules
-        module= __import__(f"stores.llm.template.locales.{target_language}.{group}", fromlist=[group])
-
+        module = __import__(
+            f"stores.LLM.Templates.locales.{target_language}.{group}",
+            fromlist=[group]
+        )   
         if not module:
             return None
         key_atrribute= getattr(module,key)
-        return key_atrribute.substitue(vars)
+        return key_atrribute.substitute(vars) 
     
 
 

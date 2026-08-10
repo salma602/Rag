@@ -1,9 +1,9 @@
+from models.db_schems.mini_rag.schemes.datachunk import RetrievedDocument
 from qdrant_client import models, QdrantClient
 from ..VectorDBInterface import VectorDBInterface
 from ..VectorDBEnums import DistanceMethodEnums
 import logging
 from typing import List
-from models.db_schems import RetrivedDocument
 class QdrantDBProvider(VectorDBInterface):
 
     def __init__(self, db_path: str, distance_method: str):
@@ -136,7 +136,7 @@ class QdrantDBProvider(VectorDBInterface):
             return None
 
         return [
-            RetrivedDocument(**{
+            RetrievedDocument(**{
                 "score": result.score,
                 "text": result.payload["text"],
             }   

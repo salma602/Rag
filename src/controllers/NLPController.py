@@ -1,6 +1,6 @@
 from .Basecontroller import Basecontroller
-from models.db_schems import project
-from models.db_schems import data_chunk
+from models.db_schems.mini_rag.schemes.project import Project
+from models.db_schems.mini_rag.schemes import datachunk
 from stores.LLM.LLMEnums import DocumentTypeEnum
 
 from typing import List
@@ -26,11 +26,11 @@ class NLPController(Basecontroller):
     def create_collection_name(self, project_id: str):
         return f"collection_{project_id}".strip()
     
-    def reset_vector_db_collection(self, project: project):
+    def reset_vector_db_collection(self, project: Project):
         collection_name = self.create_collection_name(project_id=project.project_id)
         return self.vectordb_client.delete_collection(collection_name=collection_name)
     
-    def get_vector_db_collection_info(self, project: project):
+    def get_vector_db_collection_info(self, project: Project):
         collection_name = self.create_collection_name(project_id=project.project_id)
         collection_info = self.vectordb_client.get_collection_info(collection_name=collection_name)
 
@@ -38,7 +38,7 @@ class NLPController(Basecontroller):
             json.dumps(collection_info, default=lambda x: x.__dict__)
         )
     
-    def index_into_vector_db(self, project: project, chunks: List[data_chunk],
+    def index_into_vector_db(self, project: Project, chunks: List[datachunk],
                                    chunks_ids: List[int], 
                                    do_reset: bool = False):
         
@@ -72,7 +72,7 @@ class NLPController(Basecontroller):
 
         return True
 
-    def search_vector_db_collection(self, project: project, text: str, limit: int = 10):
+    def search_vector_db_collection(self, project: Project, text: str, limit: int = 10):
 
         # get collection name
         collection_name = self.create_collection_name(project_id=project.project_id)
@@ -96,7 +96,7 @@ class NLPController(Basecontroller):
 
         return results
     
-    def answer_rag_question(self, project: project, query: str, limit: int = 10):
+    def answer_rag_question(self, project: Project, query: str, limit: int = 10):
         
         answer, full_prompt, chat_history = None, None, None
 
@@ -116,7 +116,7 @@ class NLPController(Basecontroller):
         documents_prompts = "\n".join([
             self.template_parser.get("rag", "document_prompt", {
                     "doc_num": idx + 1,
-                    "chunk_text": doc.text,
+                    "chunk_text": self.generation_client.process_text(doc.text)  ,
             })
             for idx, doc in enumerate(retrieved_documents)
         ])
