@@ -6,9 +6,9 @@ import json
 
 class NLPController(Basecontroller):
 
-    def __init__(self, vectordb_client, generation_client, 
+    def __init__(self, app_settings,vectordb_client, generation_client, 
                  embedding_client, template_parser):
-        super().__init__()
+        super().__init__(app_settings)
 
         self.vectordb_client = vectordb_client
         self.generation_client = generation_client

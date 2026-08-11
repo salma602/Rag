@@ -161,12 +161,27 @@ class PGVectorProvider(VectorDBInterface):
                     return False
                 
                 self.logger.info(f"START: Creating vector index for collection: {collection_name}")
-                
+                                    
                 index_name = self.default_index_name(collection_name)
+
+                distance_operator = {
+                    "cosine": "vector_cosine_ops",
+                    "l2": "vector_l2_ops",
+                    "euclidean": "vector_l2_ops",
+                    "ip": "vector_ip_ops",
+                    "inner_product": "vector_ip_ops",
+                }.get(self.distance_method.lower())
+
+                if not distance_operator:
+                    raise ValueError(
+                        f"Unsupported distance method: {self.distance_method}"
+                    )
+
                 create_idx_sql = sql_text(
-                                            f'CREATE INDEX {index_name} ON {collection_name} '
-                                            f'USING {index_type} ({PgVectorTableSchemeEnums.VECTOR.value} {self.distance_method})'
-                                          )
+                    f'CREATE INDEX {index_name} ON {collection_name} '
+                    f'USING {index_type} '
+                    f'({PgVectorTableSchemeEnums.VECTOR.value} {distance_operator})'
+                )
 
                 await session.execute(create_idx_sql)
 
