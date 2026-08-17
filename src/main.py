@@ -8,10 +8,10 @@ from routes import base, data, nlp
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-
+from utils.metrics import setup_metrics
 
 app = FastAPI()
-
+setup_metrics(app)
 
 async def startup_span():
 
