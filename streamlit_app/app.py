@@ -1,14 +1,37 @@
 import streamlit as st
 import requests
+import os
+import time
+def check_fastapi():
+    for _ in range(10):
+        try:
+            response = requests.get(
+                f"{FASTAPI_URL}/docs",
+                timeout=3
+            )
 
+            if response.ok:
+                return True
 
-# ============================================================
-# Configuration
-# ============================================================
+        except requests.exceptions.RequestException:
+            pass
 
-FASTAPI_URL = "http://127.0.0.1:5000"
+        time.sleep(2)
 
+    return False
+FASTAPI_URL = os.getenv("API_URL", "http://fastapi:8000")
 
+if check_fastapi():
+    st.success("FastAPI connected successfully")
+else:
+    st.error(
+        f"Cannot connect to FastAPI at {FASTAPI_URL}"
+    )
+try:
+    r = requests.get(f"{FASTAPI_URL}/docs", timeout=5)
+    st.success(f"FastAPI connected: {r.status_code}")
+except Exception as e:
+    st.error(f"FastAPI connection failed: {e}")
 # ============================================================
 # Page Configuration
 # ============================================================
@@ -55,11 +78,11 @@ def process_file(
     url = f"{FASTAPI_URL}/api/v1/data/process/{project_id}"
 
     payload = {
-        "file_id": file_id,
+        "file_id": str(file_id) if file_id is not None else None,
         "chunk_size": chunk_size,
         "overlap_size": overlap_size,
         "do_reset": do_reset
-    }
+}
 
     response = requests.post(
         url,
@@ -686,7 +709,9 @@ with tab_chat:
                             f"{response.status_code}"
                         )
 
-                        st.json(response.json())
+                        st.write("Status Code:", response.status_code)
+                        st.write("Response Headers:", dict(response.headers))
+                        st.code(response.text)
 
                 except requests.exceptions.ConnectionError:
 

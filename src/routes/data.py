@@ -105,8 +105,8 @@ async def process_endpoint(request: Request, id: int, process_request: ProcessRe
 
 
     project_files_ids={}
-    if process_request.file_id:
-        assest_record = await asset_model.get_asset_record(asset_project_id=project.project_id, asset_name=file_id)
+    if process_request.file_id :
+        assest_record = await asset_model.get_asset_by_id(asset_id=process_request.file_id,asset_project_id=project.project_id)
         if assest_record is None:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
